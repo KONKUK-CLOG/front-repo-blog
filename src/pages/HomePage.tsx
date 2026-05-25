@@ -1,6 +1,5 @@
-"use client"
 
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { ArrowRight, Eye, Loader2 } from "lucide-react"
 import { fetchPublishedBlogs, fetchBlog } from "@/lib/api/blogs"
@@ -64,14 +63,14 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/blog"
+              to="/blog"
               className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-6 py-3 font-medium hover:opacity-90 transition-opacity"
             >
               모든 글 보기
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/about"
+              to="/about"
               className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-medium hover:bg-secondary transition-colors"
             >
               소개
@@ -122,7 +121,7 @@ export default function Home() {
                   {popularPosts.map((post) => (
                     <li key={post.id}>
                       <Link
-                        href={`/blog/${post.id}`}
+                        to={`/blog/${post.id}`}
                         className="text-sm text-foreground/70 hover:text-primary transition-colors line-clamp-2"
                       >
                         {post.title}
@@ -144,7 +143,7 @@ export default function Home() {
               <p className="prose-paragraph text-sm mb-4">
                 GitHub로 로그인하면 글 작성·북마크·관리자 대시보드를 사용할 수 있습니다.
               </p>
-              <Link href="/blog" className="text-sm font-medium text-primary hover:underline">
+              <Link to="/blog" className="text-sm font-medium text-primary hover:underline">
                 블로그 둘러보기 →
               </Link>
             </div>
