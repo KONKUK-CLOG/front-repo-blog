@@ -1,12 +1,12 @@
 
 import { Link } from "react-router-dom"
 import { useParams } from "react-router-dom"
-import { ArrowLeft, Clock, User, Calendar, Share2, MessageCircle, Eye, Loader2 } from "lucide-react"
+import { ArrowLeft, User, Calendar, Share2, MessageCircle, Eye, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { fetchBlog, incrementView } from "@/lib/api/blogs"
 import type { BlogDetail } from "@/lib/api/types"
 import { ApiError } from "@/lib/api/client"
-import { formatDate, estimateReadTime } from "@/lib/format"
+import { formatDate } from "@/lib/format"
 import { appUrl } from "@/lib/app-path"
 import ShareMenu from "@/components/share-menu"
 import CommentSection from "@/components/comment-section"
@@ -77,7 +77,6 @@ export default function PostPage() {
     )
   }
 
-  const readTime = estimateReadTime(post.content)
   const shareUrl = appUrl(`/blog/${post.id}`)
 
   return (
@@ -105,10 +104,6 @@ export default function PostPage() {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             {formatDate(post.publishedAt ?? post.createdAt)}
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            {readTime}
           </div>
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4" />

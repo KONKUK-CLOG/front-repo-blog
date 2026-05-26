@@ -8,9 +8,11 @@ import { ApiError } from "@/lib/api/client"
 
 interface BookmarkButtonProps {
   blogId: number
+  /** 목록 카드 등 — 아이콘만 */
+  compact?: boolean
 }
 
-export default function BookmarkButton({ blogId }: BookmarkButtonProps) {
+export default function BookmarkButton({ blogId, compact = false }: BookmarkButtonProps) {
   const { user, login } = useAuth()
   const [bookmarkId, setBookmarkId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,6 +53,26 @@ export default function BookmarkButton({ blogId }: BookmarkButtonProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={loading}
+        title={bookmarkId ? "북마크 해제" : "북마크"}
+        aria-label={bookmarkId ? "북마크 해제" : "북마크"}
+        aria-pressed={!!bookmarkId}
+        className={`p-2 rounded-lg border transition-colors ${
+          bookmarkId
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
+        }`}
+      >
+        <Bookmark className={`h-4 w-4 ${bookmarkId ? "fill-current" : ""}`} />
+      </button>
+    )
   }
 
   return (

@@ -2,10 +2,10 @@
 import type React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { createComment, deleteComment, fetchComments } from "@/lib/api/comments"
+import { createComment, deleteComment, fetchComments, updateComment } from "@/lib/api/comments"
 import type { Comment } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/format"
-import { Trash2, Loader2 } from "lucide-react"
+import { Trash2, Loader2, Pencil, X, Check } from "lucide-react"
 
 interface CommentSectionProps {
   blogId: number
@@ -18,6 +18,9 @@ export default function CommentSection({ blogId }: CommentSectionProps) {
   const [guestNickname, setGuestNickname] = useState("")
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingContent, setEditingContent] = useState("")
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -57,8 +60,40 @@ export default function CommentSection({ blogId }: CommentSectionProps) {
   const handleDelete = async (commentId: number) => {
     if (!confirm("댓글을 삭제할까요?")) return
     await deleteComment(commentId)
+    if (editingId === commentId) {
+      setEditingId(null)
+      setEditingContent("")
+    }
     await load()
   }
+
+  const startEdit = (comment: Comment) => {
+    setEditingId(comment.id)
+    setEditingContent(comment.content)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditingContent("")
+  }
+
+  const handleSaveEdit = async (commentId: number) => {
+    const trimmed = editingContent.trim()
+    if (!trimmed) return
+
+    setSavingEdit(true)
+    try {
+      await updateComment(commentId, trimmed)
+      setEditingId(null)
+      setEditingContent("")
+      await load()
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const canManage = (comment: Comment) =>
+    user && comment.authorType === "MEMBER" && comment.author?.id === user.id
 
   const displayName = (c: Comment) =>
     c.authorType === "GUEST" ? c.guestNickname ?? "익명" : c.author?.nickname ?? "회원"
@@ -136,17 +171,66 @@ export default function CommentSection({ blogId }: CommentSectionProps) {
                     </p>
                   </div>
                 </div>
-                {user && comment.author?.id === user.id && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(comment.id)}
-                    className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                {canManage(comment) && (
+                  <div className="flex items-center gap-1">
+                    {editingId !== comment.id && (
+                      <button
+                        type="button"
+                        onClick={() => startEdit(comment)}
+                        className="p-1 text-muted-foreground hover:text-foreground hover:bg-secondary rounded transition-colors"
+                        aria-label="댓글 수정"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment.id)}
+                      className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors"
+                      aria-label="댓글 삭제"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 )}
               </div>
-              <p className="text-foreground/80 whitespace-pre-wrap">{comment.content}</p>
+              {editingId === comment.id ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    autoFocus
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      disabled={savingEdit}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-secondary disabled:opacity-50"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEdit(comment.id)}
+                      disabled={savingEdit || !editingContent.trim()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-50"
+                    >
+                      {savingEdit ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Check className="h-3.5 w-3.5" />
+                      )}
+                      저장
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-foreground/80 whitespace-pre-wrap">{comment.content}</p>
+              )}
             </div>
           ))}
         </div>

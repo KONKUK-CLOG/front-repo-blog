@@ -28,12 +28,6 @@ export function excerptFromContent(content: string, maxLen = 140): string {
   return `${text.slice(0, maxLen)}…`
 }
 
-export function estimateReadTime(content: string): string {
-  const words = stripHtml(content).split(/\s+/).filter(Boolean).length
-  const minutes = Math.max(1, Math.ceil(words / 200))
-  return `${minutes}분`
-}
-
 export function statusLabel(status: string): string {
   const map: Record<string, string> = {
     DRAFT: "초안",

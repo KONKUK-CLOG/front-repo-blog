@@ -4,14 +4,14 @@ import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { fetchPublishedBlogs, fetchBlog } from "@/lib/api/blogs"
 import type { BlogSummary } from "@/lib/api/types"
 import BlogPostCard from "@/components/blog-post-card"
-import { excerptFromContent, estimateReadTime } from "@/lib/format"
+import { excerptFromContent } from "@/lib/format"
 import { ApiError } from "@/lib/api/client"
 
 const POSTS_PER_PAGE = 8
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogSummary[]>([])
-  const [meta, setMeta] = useState<Record<number, { excerpt: string; readTime: string }>>({})
+  const [meta, setMeta] = useState<Record<number, { excerpt: string }>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -22,17 +22,14 @@ export default function BlogPage() {
       .then(async (list) => {
         setError(null)
         setPosts(list)
-        const map: Record<number, { excerpt: string; readTime: string }> = {}
+        const map: Record<number, { excerpt: string }> = {}
         await Promise.all(
           list.slice(0, 20).map(async (p) => {
             try {
               const detail = await fetchBlog(p.id)
-              map[p.id] = {
-                excerpt: excerptFromContent(detail.content),
-                readTime: estimateReadTime(detail.content),
-              }
+              map[p.id] = { excerpt: excerptFromContent(detail.content) }
             } catch {
-              map[p.id] = { excerpt: "", readTime: "" }
+              map[p.id] = { excerpt: "" }
             }
           }),
         )
@@ -92,7 +89,7 @@ export default function BlogPage() {
                   key={post.id}
                   post={post}
                   excerpt={meta[post.id]?.excerpt}
-                  readTime={meta[post.id]?.readTime}
+                  showBookmark
                 />
               ))}
             </div>

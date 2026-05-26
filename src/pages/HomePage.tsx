@@ -5,12 +5,12 @@ import { ArrowRight, Eye, Loader2 } from "lucide-react"
 import { fetchPublishedBlogs, fetchBlog } from "@/lib/api/blogs"
 import type { BlogSummary } from "@/lib/api/types"
 import BlogPostCard from "@/components/blog-post-card"
-import { excerptFromContent, estimateReadTime } from "@/lib/format"
+import { excerptFromContent } from "@/lib/format"
 import { ApiError } from "@/lib/api/client"
 
 export default function Home() {
   const [posts, setPosts] = useState<BlogSummary[]>([])
-  const [meta, setMeta] = useState<Record<number, { excerpt: string; readTime: string }>>({})
+  const [meta, setMeta] = useState<Record<number, { excerpt: string }>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,15 +25,14 @@ export default function Home() {
         )
         setPosts(sorted)
         const recent = sorted.slice(0, 6)
-        const m: Record<number, { excerpt: string; readTime: string }> = {}
+        const m: Record<number, { excerpt: string }> = {}
         await Promise.all(
           recent.map(async (p) => {
             try {
               const d = await fetchBlog(p.id)
-              const excerpt = excerptFromContent(d.content)
-              m[p.id] = { excerpt, readTime: estimateReadTime(d.content) }
+              m[p.id] = { excerpt: excerptFromContent(d.content) }
             } catch {
-              m[p.id] = { excerpt: "", readTime: "" }
+              m[p.id] = { excerpt: "" }
             }
           }),
         )
@@ -99,7 +98,7 @@ export default function Home() {
                     key={post.id}
                     post={post}
                     excerpt={meta[post.id]?.excerpt}
-                    readTime={meta[post.id]?.readTime}
+                    showBookmark
                   />
                 ))}
               </div>
